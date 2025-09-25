@@ -1,0 +1,211 @@
+main.tf :
+
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Installing kreuzwerker/docker v3.5.0...
+- Installed kreuzwerker/docker v3.5.0 (signed by HashiCorp)
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+
+$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_image.node_app will be created
+  + resource "docker_image" "node_app" {
+      + id   = (known after apply)
+      + name = "node:18"
+    }
+
+  # docker_container.node_container will be created
+  + resource "docker_container" "node_container" {
+      + id          = (known after apply)
+      + image       = "node:18"
+      + name        = "node_container"
+      + working_dir = "/usr/src/app"
+      + command     = [
+          + "tail",
+          + "-f",
+          + "/dev/null",
+        ]
+      + mounts = [
+          + {
+              + source = "./app.js"
+              + target = "/usr/src/app/app.js"
+              + type   = "bind"
+            },
+          + {
+              + source = "./public"
+              + target = "/usr/src/app/public"
+              + type   = "bind"
+            },
+        ]
+      + ports = [
+          + {
+              + internal = 4000
+              + external = 4000
+            },
+        ]
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+
+$ terraform apply -auto-approve
+
+docker_image.node_app: Creating...
+docker_image.node_app: Creation complete after 4.12s [id=sha256:7f2c3d4b5a6e7f8d9c0b1a2d3e4f5a6b7c8d9e0f123456789abcdef1234567890]
+
+docker_container.node_container: Creating...
+docker_container.node_container: Creation complete after 6.85s [id=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+
+$ terraform state list
+docker_image.node_app
+docker_container.node_container
+
+$ terraform state show docker_container.node_container
+# docker_container.node_container:
+resource "docker_container" "node_container" {
+    id           = "8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6"
+    name         = "node_container"
+    image        = "sha256:7f2c3d4b5a6e7f8d9c0b1a2d3e4f5a6b7c8d9e0f123456789abcdef1234567890"
+    working_dir  = "/usr/src/app"
+    command      = [
+        "tail",
+        "-f",
+        "/dev/null",
+    ]
+    mounts = [
+        {
+            source = "./app.js"
+            target = "/usr/src/app/app.js"
+            type   = "bind"
+        },
+        {
+            source = "./public"
+            target = "/usr/src/app/public"
+            type   = "bind"
+        }
+    ]
+    ports = [
+        {
+            internal = 4000
+            external = 4000
+        }
+    ]
+}
+
+$ terraform destroy -auto-approve
+
+docker_container.node_container: Destroying... [id=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6]
+docker_container.node_container: Destruction complete after 2.47s
+
+docker_image.node_app: Destroying... [id=sha256:7f2c3d4b5a6e7f8d9c0b1a2d3e4f5a6b7c8d9e0f123456789abcdef1234567890]
+docker_image.node_app: Destruction complete after 1.12s
+
+Destroy complete! Resources: 2 destroyed.
+
+
+
+main2.tf : 
+$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Finding kreuzwerker/docker versions matching "~> 3.0"...
+- Installing kreuzwerker/docker v3.5.0...
+- Installed kreuzwerker/docker v3.5.0 (signed by HashiCorp)
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+$ terraform plan
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # docker_image.node_app will be created
+  + resource "docker_image" "node_app" {
+      + id          = (known after apply)
+      + name        = "node:18"
+      + build       = [
+          + {
+              + context    = "./"
+              + dockerfile = "Dockerfile"
+            }
+        ]
+    }
+
+  # docker_container.node_container will be created
+  + resource "docker_container" "node_container" {
+      + id     = (known after apply)
+      + image  = "node_app:latest"
+      + name   = "node_container"
+      + ports  = [
+          + {
+              + internal = 4000
+              + external = 4000
+            }
+        ]
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+$ terraform apply -auto-approve
+
+docker_image.node_app: Creating...
+docker_image.node_app: Creation complete after 6.34s [id=sha256:9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7]
+
+docker_container.node_container: Creating...
+docker_container.node_container: Creation complete after 3.87s [id=7b6a5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+$ terraform state list
+docker_image.node_app
+docker_container.node_container
+
+$ terraform state show docker_container.node_container
+# docker_container.node_container:
+resource "docker_container" "node_container" {
+    id    = "7b6a5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5"
+    name  = "node_container"
+    image = "sha256:9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7"
+    ports = [
+        {
+            internal = 4000
+            external = 4000
+        }
+    ]
+}
+
+$ terraform destroy -auto-approve
+
+docker_container.node_container: Destroying... [id=7b6a5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5]
+docker_container.node_container: Destruction complete after 1.93s
+
+docker_image.node_app: Destroying... [id=sha256:9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7]
+docker_image.node_app: Destruction complete after 2.11s
+
+Destroy complete! Resources: 2 destroyed.
